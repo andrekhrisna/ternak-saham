@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <title>Ternak Saham</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <style>
+    body { background-color: #f4f6f9; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #333; }
+    .app-header { background-color: #111827; color: #fff; padding: 15px 24px; border-bottom: 4px solid #3b82f6; }
+    .app-logo { width: 40px; height: 40px; background-color: #3b82f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px; }
+    .header-badge { background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 6px 16px; font-size: 13px; }
+    .header-badge span { color: #10b981; font-weight: bold; margin-left: 8px; }
+    .summary-card { background: #fff; border-radius: 0 0 12px 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 24px; padding: 20px; }
+    .summary-label { font-size: 11px; text-transform: uppercase; font-weight: 700; color: #9ca3af; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .summary-value { font-size: 28px; font-weight: 800; color: #1f2937; line-height: 1.2; }
+    .summary-subtext { font-size: 13px; color: #6b7280; margin-top: 4px; }
+    .col-divider { border-right: 1px solid #e5e7eb; }
+    .nav-tabs { border-bottom: 2px solid #e5e7eb; padding-left: 20px; margin-bottom: 24px; }
+    .nav-tabs .nav-link { border: none; color: #6b7280; font-weight: 600; padding: 12px 20px; position: relative; font-size: 14px; }
+    .nav-tabs .nav-link:hover { border: none; color: #3b82f6; background: transparent; }
+    .nav-tabs .nav-link.active { border: none; color: #0d6efd; background: transparent; }
+    .nav-tabs .nav-link.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 3px; background-color: #0d6efd; border-radius: 3px 3px 0 0; }
+    .content-card { background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; padding: 24px; }
+    .form-label { font-size: 12px; font-weight: 700; color: #4b5563; text-transform: uppercase; margin-bottom: 6px; }
+    .form-control { border-radius: 8px; border: 1px solid #d1d5db; padding: 10px 14px; font-size: 14px; }
+    .form-control:focus { border-color: #3b82f6; box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25); }
+    .checklist-box { background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; }
+    .checklist-title { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 15px; }
+    .check-item { display: flex; align-items: flex-start; margin-bottom: 12px; }
+    .check-icon { color: #0d6efd; font-size: 18px; margin-right: 12px; margin-top: -2px; }
+    .check-text strong { color: #1e293b; font-size: 14px; }
+    .check-text p { color: #64748b; font-size: 12px; margin: 0; line-height: 1.4; }
+    .progress { height: 10px; border-radius: 10px; background-color: #e5e7eb; margin: 8px 0; }
+    .progress-bar { background-color: #0d6efd; border-radius: 10px; }
+    .score-badge { border: 1px solid #0d6efd; color: #0d6efd; background: #eff6ff; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    @media (max-width: 768px) {
+      .col-divider { border-right: none; border-bottom: 1px solid #e5e7eb; padding-bottom: 15px; margin-bottom: 15px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-header d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center">
+      <div class="app-logo"><i class="bi bi-graph-up-arrow"></i></div>
+      <div>
+        <h4 class="mb-0 fw-bold" style="font-size: 18px;">Ternak Saham</h4>
+        <small style="color: #9ca3af; font-size: 12px;">Target Investasi & Tracking Lot Saham</small>
+      </div>
+    </div>
+    <div class="header-badge d-none d-md-block">
+      <span id="badgeKriteria">Screening</span> <span id="badgeEmiten">... Saham</span>
+    </div>
+  </div>
+
+  <div class="container-fluid mb-4">
+    <div id="bannerLq45" class="alert alert-warning d-none rounded-0 mb-0 py-2 small"></div>
+    <div id="bannerData" class="alert alert-secondary d-none rounded-0 mb-0 py-2 small"></div>
+    <div class="summary-card row text-start align-items-center g-3">
+      <div class="col-md-3 col-divider">
+        <div class="summary-label">TARGET DANA</div>
+        <div class="summary-value" id="dashTargetRp">Rp 0</div>
+        <div class="summary-subtext text-truncate">Tujuan: <span id="dashTujuan">...</span></div>
+      </div>
+      <div class="col-md-3 col-divider">
+        <div class="summary-label">TOTAL DANA MASUK</div>
+        <div class="summary-value text-success" id="dashTerkumpulRp">Rp 0</div>
+        <div class="summary-subtext" id="dashTerkumpulLot">0 Lot Terkumpul</div>
+      </div>
+      <div class="col-md-3 col-divider">
+        <div class="summary-label">KEKURANGAN DANA</div>
+        <div class="summary-value text-warning" id="dashKekuranganRp">Rp 0</div>
+        <div class="summary-subtext" id="dashSisaWaktu">Sisa Waktu: 0 Bulan</div>
+      </div>
+      <div class="col-md-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="summary-label mb-0">PENCAPAIAN GOAL</div>
+          <div class="fw-bold text-primary" id="dashPersen">0.0%</div>
+        </div>
+        <div class="progress">
+          <div class="progress-bar" id="dashProgressBar" style="width: 0%"></div>
+        </div>
+        <div class="text-end summary-subtext mt-1">Kelengkapan isian: <span class="fw-bold" id="dashSmarter">0/5</span></div>
+      </div>
+    </div>
+
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+      <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab1" type="button"><i class="bi bi-bullseye me-2"></i>1. Target</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab2" type="button"><i class="bi bi-calculator me-2"></i>2. Kalkulator</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab3" type="button"><i class="bi bi-folder-check me-2"></i>3. Portfolio</button></li>
+    </ul>
+
+    <div class="tab-content" id="myTabContent">
+      <div class="tab-pane fade show active px-2 px-md-3" id="tab1" role="tabpanel">
+        <div class="content-card">
+          <h5 class="fw-bold mb-4">1. Analisis Kriteria SMARTER Goal</h5>
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">APA TUJUANNYA?</label>
+                <input type="text" class="form-control" id="inputTujuan" oninput="syncDashboard()">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">BERAPA NILAI TUJUANNYA? (RP)</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted">Rp</span>
+                  <input type="text" inputmode="numeric" class="form-control fw-bold" id="inputTargetRp" oninput="formatRupiah(this); syncDashboard()">
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">MAKNA TUJUAN INI BAGI ANDA?</label>
+                <textarea class="form-control" rows="2" id="inputMakna"></textarea>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">KAPAN MAUNYA TERCAPAI?</label>
+                <input type="date" class="form-control" id="inputTanggal" onchange="syncDashboard()">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">MENGAPA INI PENTING?</label>
+                <textarea class="form-control" rows="2" id="inputAlasan"></textarea>
+              </div>
+              <button class="btn btn-primary w-100 fw-bold mt-2" id="btnSimpanTarget" onclick="simpanTargetCloud()"><i class="bi bi-cloud-arrow-up me-2"></i>Simpan Target di Perangkat Ini</button>
+            </div>
+            <div class="col-md-6">
+              <div class="checklist-box h-100">
+                <div class="checklist-title">CHECKLIST VALIDASI SMARTER</div>
+                <div class="check-item"><i class="bi bi-check-square-fill check-icon"></i><div class="check-text"><strong>S - Specific & Simple</strong><p>Tujuan terdefinisi jelas tanpa ambigu.</p></div></div>
+                <div class="check-item"><i class="bi bi-check-square-fill check-icon"></i><div class="check-text"><strong>M - Measurable & Meaningful</strong><p>Nilai target angka pasti dan bermakna.</p></div></div>
+                <div class="check-item"><i class="bi bi-check-square-fill check-icon"></i><div class="check-text"><strong>A - Achievable & As-If-Now</strong><p>Mampu dieksekusi bulanan mulai sekarang.</p></div></div>
+                <div class="check-item"><i class="bi bi-check-square-fill check-icon"></i><div class="check-text"><strong>R - Realistic</strong><p>Didukung saham fundamental kuat LQ45.</p></div></div>
+                <div class="check-item"><i class="bi bi-check-square-fill check-icon"></i><div class="check-text"><strong>T - Timely</strong><p>Memiliki tenggat waktu yang pasti.</p></div></div>
+                <div class="check-item"><i class="bi bi-check-square-fill check-icon"></i><div class="check-text"><strong>E - Exciting</strong><p>Memberikan kebebasan finansial.</p></div></div>
+                <div class="check-item"><i class="bi bi-check-square-fill check-icon"></i><div class="check-text"><strong>R - Recordable</strong><p>Dapat dicatat berkala di Canvas Tracker.</p></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-pane fade px-2 px-md-3" id="tab2" role="tabpanel">
+        <div class="content-card">
+          <h5 class="fw-bold mb-3">2. Konversi Target ke Saham</h5>
+          <div class="d-flex flex-wrap gap-3 align-items-center mb-3">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="filterLolos" onchange="kalkulasiTarget()">
+              <label class="form-check-label small fw-bold" for="filterLolos">Tampilkan yang LOLOS saja</label>
+            </div>
+            <div class="small text-muted" id="infoKriteria"></div>
+          </div>
+          <div id="loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted fw-bold">Memuat data screening...</p>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle d-none border" id="tabelSaham">
+              <thead class="table-light text-nowrap">
+                <tr>
+                  <th>Ticker</th><th>Harga (Rp)</th><th>Laba (Rp T)</th><th>NPM</th><th>Dividen/Lbr (Rp)</th><th>Yield</th><th>Hasil</th><th>Butuh (Lot)</th><th>Beli/Bln (Lot)</th><th>Modal/Bln (Rp)</th><th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="sahamBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-pane fade px-2 px-md-3" id="tab3" role="tabpanel">
+        <div class="content-card">
+          <h5 class="fw-bold mb-4">3. Catat Pembelian (Tracker)</h5>
+          <div class="row g-3 align-items-end p-3 bg-light rounded border">
+            <div class="col-md-3">
+              <label class="form-label">PILIH EMITEN</label>
+              <select id="pilihTicker" class="form-select"></select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">JUMLAH (LOT)</label>
+              <input type="number" id="inputLot" class="form-control">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">TOTAL KELUAR (RP)</label>
+              <input type="text" inputmode="numeric" id="inputModal" class="form-control" oninput="formatRupiah(this)">
+            </div>
+            <div class="col-md-3">
+              <button class="btn btn-primary w-100 fw-bold" onclick="simpanPembelian()" id="btnSimpanBeli"><i class="bi bi-save me-2"></i>Simpan</button>
+            </div>
+          </div>
+          <div class="table-responsive mt-4">
+            <table class="table align-middle border d-none" id="tabelPorto">
+              <thead class="table-light text-nowrap">
+                <tr><th>Emiten</th><th>Lot</th><th>Modal (Rp)</th><th>Harga Rata-rata</th><th>Nilai Pasar (Rp)</th><th>Untung/Rugi</th><th></th></tr>
+              </thead>
+              <tbody id="portoBody"></tbody>
+              <tfoot id="portoFoot" class="table-light fw-bold"></tfoot>
+            </table>
+            <div class="small text-muted" id="portoKosong">Belum ada pembelian tercatat.</div>
+          </div>
+          <div class="mt-4 p-3 border rounded bg-light">
+            <div class="fw-bold small mb-1"><i class="bi bi-shield-check me-1"></i>Cadangan data</div>
+            <div class="small text-muted mb-2">Target dan portofolio hanya tersimpan di browser ini. Data hilang jika data browser dihapus atau berganti HP, jadi simpan cadangan secara berkala.</div>
+            <button class="btn btn-sm btn-outline-primary me-2" onclick="eksporData()"><i class="bi bi-download me-1"></i>Unduh cadangan</button>
+            <button class="btn btn-sm btn-outline-secondary me-2" onclick="document.getElementById('fileImpor').click()"><i class="bi bi-upload me-1"></i>Pulihkan dari file</button>
+            <button class="btn btn-sm btn-outline-danger" onclick="resetData()"><i class="bi bi-trash me-1"></i>Hapus data saya</button>
+            <input type="file" id="fileImpor" accept="application/json,.json" class="d-none" onchange="imporData(this)">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <footer class="container-fluid pb-4 small text-muted">
+    <hr>
+    <p class="mb-1"><strong>Bukan rekomendasi investasi.</strong> Alat ini hanya menyaring saham berdasarkan kriteria sederhana (laba bersih, NPM, keanggotaan LQ45). Data fundamental diinput manual dari laporan keuangan tahun buku terakhir dan <strong>dapat salah atau tertinggal</strong>; periksa kembali ke laporan resmi (IDX/emiten) sebelum mengambil keputusan. Harga dari Google Finance dapat tertunda. Kinerja masa lalu tidak menjamin hasil di masa depan.</p>
+    <p class="mb-0" id="infoPembaruan"></p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // === PENGATURAN: isi dengan URL Web App Apps Script (berakhiran /exec) ===
+    const API_URL = 'GANTI_DENGAN_URL_WEB_APP_ANDA';
+    // Data fundamental dianggap usang bila baris terbaru lebih tua dari ini (hari)
+    const BATAS_USANG_HARI = 135;
+
+    const KEY = 'ternakSaham.v1';
+    const KEY_CACHE = 'ternakSaham.cache.v1';
+    const fmt = new Intl.NumberFormat('id-ID');
+    let memStore = {};           // cadangan bila localStorage diblokir
+    let globalData = { saham: [], pengaturan: {} };
+    let user = { target: {}, portofolio: [], tersembunyi: [] };
+    let bulanTarget = 36;
+
+    // ---------- penyimpanan lokal ----------
+    function lsGet(k) { try { const v = localStorage.getItem(k); return v === null ? (memStore[k] || null) : v; } catch (e) { return memStore[k] || null; } }
+    function lsSet(k, v) { memStore[k] = v; try { localStorage.setItem(k, v); } catch (e) { /* diblokir: tetap di memori */ } }
+    function lsDel(k) { delete memStore[k]; try { localStorage.removeItem(k); } catch (e) {} }
+
+    function bacaUser() {
+      try {
+        const o = JSON.parse(lsGet(KEY) || 'null');
+        if (o && typeof o === 'object') {
+          user = { target: o.target || {}, portofolio: Array.isArray(o.portofolio) ? o.portofolio : [], tersembunyi: Array.isArray(o.tersembunyi) ? o.tersembunyi : [] };
+        }
+      } catch (e) {}
+    }
+    function simpanUser() { lsSet(KEY, JSON.stringify(user)); }
+
+    // ---------- util ----------
+    function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function pct(v, d) { return v === null || v === undefined ? '-' : (v * 100).toFixed(d === undefined ? 1 : d) + '%'; }
+    function formatRupiah(input) { const v = input.value.replace(/[^0-9]/g, ''); input.value = v !== '' ? fmt.format(v) : ''; }
+    function getRawNumber(id) { return Number(document.getElementById(id).value.replace(/[^0-9]/g, '')) || 0; }
+    function parseTanggal(str) { if (!str) return null; const p = str.split('-'); return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])); }
+    function badgeTri(v) { return v === true ? '<span class="text-success">✓</span>' : v === false ? '<span class="text-danger">✗</span>' : '<span class="text-muted">-</span>'; }
+
+    // ---------- ambil data screening ----------
+    function ambilData() {
+      return new Promise((resolve, reject) => {
+        if (!API_URL || API_URL.indexOf('GANTI_') === 0) { reject(new Error('API_URL belum diisi di Index.html.')); return; }
+        const t = setTimeout(() => reject(new Error('Waktu habis saat memuat data.')), 20000);
+        fetch(API_URL, { method: 'GET', redirect: 'follow' })
+          .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+          .then(d => { clearTimeout(t); if (d.error) throw new Error(d.error); resolve(d); })
+          .catch(e1 => {
+            // cadangan: JSONP
+            const cb = 'cb_' + Date.now();
+            const s = document.createElement('script');
+            window[cb] = d => { clearTimeout(t); delete window[cb]; s.remove(); d && !d.error ? resolve(d) : reject(new Error((d && d.error) || e1.message)); };
+            s.onerror = () => { clearTimeout(t); s.remove(); reject(e1); };
+            s.src = API_URL + (API_URL.indexOf('?') > -1 ? '&' : '?') + 'callback=' + cb;
+            document.body.appendChild(s);
+          });
+      });
+    }
+
+    window.onload = function() {
+      bacaUser();
+      isiFormTarget();
+      ambilData().then(d => { lsSet(KEY_CACHE, JSON.stringify(d)); renderData(d, false); })
+        .catch(err => {
+          let cache = null;
+          try { cache = JSON.parse(lsGet(KEY_CACHE) || 'null'); } catch (e) {}
+          if (cache) { renderData(cache, true, err.message); }
+          else document.getElementById('loading').innerHTML = '<div class="alert alert-danger">Gagal memuat data: ' + esc(err.message) + '</div>';
+        });
+    };
+
+    function isiFormTarget() {
+      const t = user.target || {};
+      document.getElementById('inputTargetRp').value = t.targetRp ? fmt.format(t.targetRp) : '';
+      document.getElementById('inputTujuan').value = t.tujuan || '';
+      document.getElementById('inputMakna').value = t.makna || '';
+      document.getElementById('inputTanggal').value = t.tanggal || '';
+      document.getElementById('inputAlasan').value = t.alasan || '';
+    }
+
+    function renderData(data, dariCache, pesanError) {
+      globalData = data;
+      const p = data.pengaturan || {};
+      document.getElementById('loading').classList.add('d-none');
+      document.getElementById('tabelSaham').classList.remove('d-none');
+
+      const lolos = data.saham.filter(s => s.hasil === 'LOLOS').length;
+      document.getElementById('badgeEmiten').innerText = ' ' + lolos + ' lolos dari ' + data.saham.length;
+      const kriteria = 'Laba ≥ ' + (p.minLaba == null ? '?' : p.minLaba) + ' T & NPM ≥ ' + pct(p.minNpm, 0);
+      document.getElementById('badgeKriteria').innerText = 'Screening: ' + kriteria;
+      document.getElementById('infoKriteria').innerText = 'Kriteria: ' + kriteria + ' & anggota LQ45 (diatur oleh pengelola).';
+
+      const b = document.getElementById('bannerLq45');
+      if (p.lq45Status && p.lq45Status !== 'OK') { b.innerText = '⚠ LQ45: ' + p.lq45Status; b.classList.remove('d-none'); } else b.classList.add('d-none');
+
+      // status kesegaran data
+      const bd = document.getElementById('bannerData');
+      const tgls = data.saham.map(s => s.update).filter(Boolean).sort();
+      const terbaru = tgls.length ? tgls[tgls.length - 1] : '';
+      const lengkap = data.saham.filter(s => s.hasil !== 'DATA BELUM LENGKAP').length;
+      let pesan = [];
+      if (dariCache) pesan.push('Tidak bisa terhubung (' + pesanError + '). Menampilkan data tersimpan terakhir.');
+      if (!terbaru) pesan.push('Belum ada data fundamental yang terisi.');
+      else {
+        const umur = Math.floor((Date.now() - parseTanggal(terbaru).getTime()) / 86400000);
+        pesan.push('Data fundamental diperbarui ' + terbaru + ' (' + umur + ' hari lalu); ' + lengkap + ' dari ' + data.saham.length + ' saham sudah berdata.' + (umur > BATAS_USANG_HARI ? ' Data mungkin sudah usang.' : ''));
+      }
+      bd.innerText = pesan.join(' ');
+      bd.classList.remove('d-none');
+      document.getElementById('infoPembaruan').innerText = data.diperbarui ? 'Data dimuat dari server: ' + data.diperbarui.replace('T', ' ').slice(0, 16) + '.' : '';
+
+      const dd = document.getElementById('pilihTicker');
+      dd.innerHTML = '<option value="">-- Pilih Emiten --</option>';
+      data.saham.forEach(s => { const o = document.createElement('option'); o.value = s.ticker; o.textContent = s.ticker; dd.appendChild(o); });
+
+      syncDashboard();
+    }
+
+    function simpanTargetCloud() {
+      user.target = {
+        targetRp: getRawNumber('inputTargetRp'),
+        tujuan: document.getElementById('inputTujuan').value,
+        makna: document.getElementById('inputMakna').value,
+        tanggal: document.getElementById('inputTanggal').value,
+        alasan: document.getElementById('inputAlasan').value
+      };
+      simpanUser();
+      alert('Tersimpan di perangkat ini. Jangan lupa unduh cadangan di tab Portfolio.');
+    }
+
+    function syncDashboard() {
+      const targetRp = getRawNumber('inputTargetRp');
+      document.getElementById('dashTargetRp').innerText = 'Rp ' + fmt.format(targetRp);
+      document.getElementById('dashTujuan').innerText = document.getElementById('inputTujuan').value || '-';
+
+      const tgt = parseTanggal(document.getElementById('inputTanggal').value);
+      bulanTarget = tgt ? Math.max(1, Math.ceil((tgt - new Date()) / 86400000 / 30.44)) : 36;
+      document.getElementById('dashSisaWaktu').innerText = 'Sisa Waktu: ' + bulanTarget + ' Bulan' + (tgt ? '' : ' (default, tanggal belum diisi)');
+
+      const terisi = ['inputTujuan','inputTargetRp','inputMakna','inputTanggal','inputAlasan'].filter(id => document.getElementById(id).value.trim() !== '').length;
+      document.getElementById('dashSmarter').innerText = terisi + '/5';
+
+      hitungProgress();
+      if (globalData.saham && globalData.saham.length) kalkulasiTarget();
+      renderPortofolio();
+    }
+
+    function kalkulasiTarget() {
+      const targetRp = getRawNumber('inputTargetRp');
+      const hanyaLolos = document.getElementById('filterLolos').checked;
+      const urutan = { 'LOLOS': 0, 'DATA BELUM LENGKAP': 1, 'TIDAK LOLOS': 2 };
+      const daftar = globalData.saham
+        .filter(s => user.tersembunyi.indexOf(s.ticker) < 0 && (!hanyaLolos || s.hasil === 'LOLOS'))
+        .sort((a, b) => (urutan[a.hasil] ?? 3) - (urutan[b.hasil] ?? 3) || a.ticker.localeCompare(b.ticker));
+
+      let html = '';
+      daftar.forEach(s => {
+        const hargaLot = s.harga * 100;
+        const totalLot = hargaLot > 0 ? Math.ceil(targetRp / hargaLot) : 0;
+        const lotPerBulan = totalLot / bulanTarget;
+        const modalPerBulan = targetRp / bulanTarget;
+        const cls = s.hasil === 'LOLOS' ? 'table-success' : s.hasil === 'TIDAK LOLOS' ? 'table-danger' : 'table-warning';
+        const bdg = s.hasil === 'LOLOS' ? 'bg-success' : s.hasil === 'TIDAK LOLOS' ? 'bg-danger' : 'bg-secondary';
+        const aksi = s.hasil === 'LOLOS' ? '<i class="bi bi-check-circle-fill text-success fs-5"></i>'
+          : '<button class="btn btn-sm btn-outline-danger" title="Sembunyikan dari daftar saya" data-t="' + esc(s.ticker) + '" onclick="sembunyikan(this.dataset.t)"><i class="bi bi-eye-slash"></i></button>';
+        html += '<tr class="' + cls + '">' +
+          '<td class="fw-bold text-primary">' + esc(s.ticker) + '</td>' +
+          '<td>' + (s.harga > 0 ? 'Rp ' + fmt.format(s.harga) : '-') + '</td>' +
+          '<td>' + badgeTri(s.laba) + ' ' + (s.labaVal == null ? '-' : s.labaVal.toFixed(2)) + '</td>' +
+          '<td>' + badgeTri(s.npm) + ' ' + pct(s.npmVal) + '</td>' +
+          '<td>' + (s.dps == null ? '-' : fmt.format(s.dps)) + '</td>' +
+          '<td>' + pct(s.yield) + '</td>' +
+          '<td><span class="badge ' + bdg + '">' + esc(s.hasil || '-') + '</span></td>' +
+          '<td class="fw-bold">' + (totalLot > 0 ? fmt.format(totalLot) : '-') + '</td>' +
+          '<td>' + (totalLot > 0 ? (lotPerBulan < 10 ? lotPerBulan.toFixed(1) : fmt.format(Math.round(lotPerBulan))) : '-') + '</td>' +
+          '<td>' + (modalPerBulan > 0 ? 'Rp ' + fmt.format(Math.round(modalPerBulan)) : '-') + '</td>' +
+          '<td>' + aksi + '</td></tr>';
+      });
+      const sembunyi = user.tersembunyi.length ? '<tr><td colspan="11" class="text-center small"><a href="#" onclick="tampilkanSemua();return false;">' + user.tersembunyi.length + ' saham disembunyikan - tampilkan lagi</a></td></tr>' : '';
+      document.getElementById('sahamBody').innerHTML = (html || '<tr><td colspan="11" class="text-center text-muted py-4">Tidak ada saham yang cocok.</td></tr>') + sembunyi;
+    }
+    function sembunyikan(t) { if (!confirm('Sembunyikan ' + t + ' dari daftar Anda? (hanya di perangkat ini)')) return; user.tersembunyi.push(t); simpanUser(); kalkulasiTarget(); }
+    function tampilkanSemua() { user.tersembunyi = []; simpanUser(); kalkulasiTarget(); }
+
+    function hitungProgress() {
+      const target = getRawNumber('inputTargetRp') || 1;
+      let rp = 0, lot = 0;
+      user.portofolio.forEach(i => { rp += Number(i.modal); lot += Number(i.lot); });
+      const kurang = target - rp, persen = rp / target * 100;
+      document.getElementById('dashTerkumpulRp').innerText = 'Rp ' + fmt.format(rp);
+      document.getElementById('dashTerkumpulLot').innerText = fmt.format(lot) + ' Lot Terkumpul (modal beli)';
+      document.getElementById('dashKekuranganRp').innerText = 'Rp ' + fmt.format(kurang < 0 ? 0 : kurang);
+      document.getElementById('dashPersen').innerText = persen.toFixed(1) + '%';
+      document.getElementById('dashProgressBar').style.width = Math.min(persen, 100) + '%';
+    }
+
+    function renderPortofolio() {
+      const porto = user.portofolio;
+      const harga = {};
+      (globalData.saham || []).forEach(s => { harga[s.ticker] = s.harga; });
+      document.getElementById('tabelPorto').classList.toggle('d-none', porto.length === 0);
+      document.getElementById('portoKosong').classList.toggle('d-none', porto.length > 0);
+      let html = '', totModal = 0, totNilai = 0, adaNilai = true;
+      porto.forEach((it, idx) => {
+        const h = harga[it.ticker];
+        const nilai = h > 0 ? h * it.lot * 100 : null;
+        const pl = nilai === null ? null : nilai - it.modal;
+        totModal += it.modal;
+        if (nilai === null) adaNilai = false; else totNilai += nilai;
+        html += '<tr><td class="fw-bold text-primary">' + esc(it.ticker) + '</td><td>' + fmt.format(it.lot) + '</td><td>Rp ' + fmt.format(it.modal) + '</td>' +
+          '<td>' + (it.lot > 0 ? 'Rp ' + fmt.format(Math.round(it.modal / (it.lot * 100))) : '-') + '</td>' +
+          '<td>' + (nilai === null ? '-' : 'Rp ' + fmt.format(Math.round(nilai))) + '</td>' +
+          '<td class="' + (pl === null ? '' : pl >= 0 ? 'text-success' : 'text-danger') + '">' + (pl === null ? '-' : fmt.format(Math.round(pl)) + ' (' + (it.modal > 0 ? (pl / it.modal * 100).toFixed(1) : '0.0') + '%)') + '</td>' +
+          '<td><button class="btn btn-sm btn-outline-secondary" title="Hapus baris (koreksi salah input)" onclick="hapusPorto(' + idx + ')"><i class="bi bi-x-lg"></i></button></td></tr>';
+      });
+      document.getElementById('portoBody').innerHTML = html;
+      const plTot = totNilai - totModal;
+      document.getElementById('portoFoot').innerHTML = porto.length === 0 ? '' :
+        '<tr><td colspan="2">Total</td><td>Rp ' + fmt.format(totModal) + '</td><td></td><td>' + (adaNilai ? 'Rp ' + fmt.format(Math.round(totNilai)) : 'sebagian harga tidak tersedia') + '</td>' +
+        '<td class="' + (plTot >= 0 ? 'text-success' : 'text-danger') + '">' + (adaNilai ? fmt.format(Math.round(plTot)) + ' (' + (totModal > 0 ? (plTot / totModal * 100).toFixed(1) : '0.0') + '%)' : '-') + '</td><td></td></tr>';
+    }
+
+    function simpanPembelian() {
+      const ticker = document.getElementById('pilihTicker').value;
+      const lot = Number(document.getElementById('inputLot').value);
+      const modal = getRawNumber('inputModal');
+      if (!ticker || !(lot > 0) || !modal) { alert('Lengkapi data pembelian!'); return; }
+      const ada = user.portofolio.find(i => i.ticker === ticker);
+      if (ada) { ada.lot += lot; ada.modal += modal; } else user.portofolio.push({ ticker, lot, modal });
+      simpanUser();
+      document.getElementById('inputLot').value = '';
+      document.getElementById('inputModal').value = '';
+      syncDashboard();
+    }
+    function hapusPorto(idx) {
+      const it = user.portofolio[idx];
+      if (!it || !confirm('Hapus catatan ' + it.ticker + ' (' + it.lot + ' lot)?')) return;
+      user.portofolio.splice(idx, 1); simpanUser(); syncDashboard();
+    }
+
+    // ---------- cadangan ----------
+    function eksporData() {
+      const blob = new Blob([JSON.stringify({ app: 'ternak-saham', versi: 1, data: user }, null, 1)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'ternak-saham-cadangan-' + new Date().toISOString().slice(0, 10) + '.json';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    }
+    function imporData(input) {
+      const f = input.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = () => {
+        try {
+          const o = JSON.parse(r.result);
+          if (o.app !== 'ternak-saham' || !o.data) throw new Error('Bukan file cadangan Ternak Saham.');
+          if (!confirm('Ganti data di perangkat ini dengan isi file cadangan?')) return;
+          user = { target: o.data.target || {}, portofolio: Array.isArray(o.data.portofolio) ? o.data.portofolio : [], tersembunyi: Array.isArray(o.data.tersembunyi) ? o.data.tersembunyi : [] };
+          simpanUser(); isiFormTarget(); syncDashboard();
+          alert('Data berhasil dipulihkan.');
+        } catch (e) { alert('Gagal memulihkan: ' + e.message); }
+        input.value = '';
+      };
+      r.readAsText(f);
+    }
+    function resetData() {
+      if (!confirm('Hapus SEMUA target dan portofolio di perangkat ini? Pastikan sudah punya cadangan.')) return;
+      user = { target: {}, portofolio: [], tersembunyi: [] }; lsDel(KEY); isiFormTarget(); syncDashboard();
+    }
+  </script>
+</body>
+</html>
