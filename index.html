@@ -37,6 +37,12 @@
     .progress { height: 10px; border-radius: 10px; background-color: #e5e7eb; margin: 8px 0; }
     .progress-bar { background-color: #0d6efd; border-radius: 10px; }
     .score-badge { border: 1px solid #0d6efd; color: #0d6efd; background: #eff6ff; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .tabel-scroll { max-height: calc(100vh - 170px); overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; }
+    .tabel-scroll table { margin-bottom: 0; border: 0 !important; }
+    .tabel-scroll thead th { position: sticky; top: 0; z-index: 3; background: #f8f9fa; box-shadow: inset 0 -2px 0 #dee2e6; }
+    th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+    th.sortable:hover { color: #0d6efd; }
+    .sort-ind { display: inline-block; width: 1.1em; margin-left: 2px; font-size: 11px; color: #0d6efd; }
     @media (max-width: 768px) {
       .col-divider { border-right: none; border-bottom: 1px solid #e5e7eb; padding-bottom: 15px; margin-bottom: 15px; }
     }
@@ -155,11 +161,11 @@
             <div class="spinner-border text-primary" role="status"></div>
             <p class="mt-2 text-muted fw-bold">Memuat data screening...</p>
           </div>
-          <div class="table-responsive">
-            <table class="table table-hover align-middle d-none border" id="tabelSaham">
+          <div class="tabel-scroll">
+            <table class="table table-hover align-middle d-none" id="tabelSaham">
               <thead class="table-light text-nowrap">
                 <tr>
-                  <th>Ticker</th><th>Harga (Rp)</th><th>Laba (Rp T)</th><th>NPM</th><th>Dividen/Lbr (Rp)</th><th>Yield</th><th>Hasil</th><th>Butuh (Lot)</th><th>Beli/Bln (Lot)</th><th>Modal/Bln (Rp)</th><th>Aksi</th>
+                  <th>Ticker</th><th class="sortable" data-key="harga">Harga (Rp)<span class="sort-ind"></span></th><th class="sortable" data-key="labaVal">Laba (Rp T)<span class="sort-ind"></span></th><th class="sortable" data-key="npmVal">NPM<span class="sort-ind"></span></th><th class="sortable" data-key="dps">Dividen/Lbr (Rp)<span class="sort-ind"></span></th><th class="sortable" data-key="yield">Yield<span class="sort-ind"></span></th><th>Hasil</th><th>Butuh (Lot)</th><th>Beli/Bln (Lot)</th><th>Modal/Bln (Rp)</th><th>Aksi</th>
                 </tr>
               </thead>
               <tbody id="sahamBody"></tbody>
@@ -188,8 +194,8 @@
               <button class="btn btn-primary w-100 fw-bold" onclick="simpanPembelian()" id="btnSimpanBeli"><i class="bi bi-save me-2"></i>Simpan</button>
             </div>
           </div>
-          <div class="table-responsive mt-4">
-            <table class="table align-middle border d-none" id="tabelPorto">
+          <div class="tabel-scroll mt-4">
+            <table class="table align-middle d-none" id="tabelPorto">
               <thead class="table-light text-nowrap">
                 <tr><th>Emiten</th><th>Lot</th><th>Modal (Rp)</th><th>Harga Rata-rata</th><th>Nilai Pasar (Rp)</th><th>Untung/Rugi</th><th></th></tr>
               </thead>
@@ -221,7 +227,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // === PENGATURAN: isi dengan URL Web App Apps Script (berakhiran /exec) ===
-    const API_URL = 'https://script.google.com/macros/s/AKfycbx6UsDiK_U-q0NHkll0lUPAC8txCM5OT9yoWLxAuQuil19fljhtxwb5LWOmkPsbx_Fa/exec';
+    const API_URL = 'GANTI_DENGAN_URL_WEB_APP_ANDA';
     // Data fundamental dianggap usang bila baris terbaru lebih tua dari ini (hari)
     const BATAS_USANG_HARI = 135;
 
@@ -232,6 +238,7 @@
     let globalData = { saham: [], pengaturan: {} };
     let user = { target: {}, portofolio: [], tersembunyi: [] };
     let bulanTarget = 36;
+    let sortState = { key: null, dir: 'desc' };   // klik judul kolom: terbesar -> terkecil -> urutan awal
 
     // ---------- penyimpanan lokal ----------
     function lsGet(k) { try { const v = localStorage.getItem(k); return v === null ? (memStore[k] || null) : v; } catch (e) { return memStore[k] || null; } }
@@ -370,7 +377,16 @@
       const urutan = { 'LOLOS': 0, 'DATA BELUM LENGKAP': 1, 'TIDAK LOLOS': 2 };
       const daftar = globalData.saham
         .filter(s => user.tersembunyi.indexOf(s.ticker) < 0 && (!hanyaLolos || s.hasil === 'LOLOS'))
-        .sort((a, b) => (urutan[a.hasil] ?? 3) - (urutan[b.hasil] ?? 3) || a.ticker.localeCompare(b.ticker));
+        .sort((a, b) => {
+          if (sortState.key) {
+            const va = a[sortState.key], vb = b[sortState.key];
+            const na = va === null || va === undefined || (sortState.key === 'harga' && !(va > 0));
+            const nb = vb === null || vb === undefined || (sortState.key === 'harga' && !(vb > 0));
+            if (na !== nb) return na ? 1 : -1;            // data kosong selalu di bawah
+            if (!na && va !== vb) return sortState.dir === 'desc' ? vb - va : va - vb;
+          }
+          return (urutan[a.hasil] ?? 3) - (urutan[b.hasil] ?? 3) || a.ticker.localeCompare(b.ticker);
+        });
 
       let html = '';
       daftar.forEach(s => {
@@ -396,8 +412,27 @@
           '<td>' + aksi + '</td></tr>';
       });
       const sembunyi = user.tersembunyi.length ? '<tr><td colspan="11" class="text-center small"><a href="#" onclick="tampilkanSemua();return false;">' + user.tersembunyi.length + ' saham disembunyikan - tampilkan lagi</a></td></tr>' : '';
+      tandaiSortir();
       document.getElementById('sahamBody').innerHTML = (html || '<tr><td colspan="11" class="text-center text-muted py-4">Tidak ada saham yang cocok.</td></tr>') + sembunyi;
     }
+    function pasangSortir() {
+      document.querySelectorAll('#tabelSaham th.sortable').forEach(th => {
+        th.addEventListener('click', () => {
+          const k = th.dataset.key;
+          if (sortState.key !== k) sortState = { key: k, dir: 'desc' };
+          else if (sortState.dir === 'desc') sortState.dir = 'asc';
+          else sortState = { key: null, dir: 'desc' };
+          kalkulasiTarget();
+        });
+      });
+    }
+    function tandaiSortir() {
+      document.querySelectorAll('#tabelSaham th.sortable').forEach(th => {
+        th.querySelector('.sort-ind').textContent = th.dataset.key === sortState.key ? (sortState.dir === 'desc' ? '▼' : '▲') : '';
+        th.title = 'Klik untuk mengurutkan (terbesar, terkecil, atau kembali ke awal)';
+      });
+    }
+    pasangSortir();
     function sembunyikan(t) { if (!confirm('Sembunyikan ' + t + ' dari daftar Anda? (hanya di perangkat ini)')) return; user.tersembunyi.push(t); simpanUser(); kalkulasiTarget(); }
     function tampilkanSemua() { user.tersembunyi = []; simpanUser(); kalkulasiTarget(); }
 
